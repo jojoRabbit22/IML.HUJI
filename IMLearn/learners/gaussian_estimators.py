@@ -1,16 +1,20 @@
 from __future__ import annotations
 import numpy as np
+import sys
 from numpy.linalg import inv, det, slogdet
+sys.path.append("../")
+from utils import *
+from scipy.stats import norm
 
 
 class UnivariateGaussian:
     """
     Class for univariate Gaussian Distribution Estimator
     """
+
     def __init__(self, biased_var: bool = False) -> UnivariateGaussian:
         """
         Estimator for univariate Gaussian mean and variance parameters
-
         Parameters
         ----------
         biased_var : bool, default=False
@@ -30,6 +34,7 @@ class UnivariateGaussian:
             Estimated variance initialized as None. To be set in `UnivariateGaussian.fit`
             function.
         """
+
         self.biased_ = biased_var
         self.fitted_, self.mu_, self.var_ = False, None, None
 
@@ -51,8 +56,9 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
 
+        self.mu_ = np.mean(X)
+        self.var_ = np.var(X, ddof=1)
         self.fitted_ = True
         return self
 
@@ -76,7 +82,20 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        def normal_of_scaler(power, mue, var, val):
+            a = 1 / (np.sqrt(2 * np.pi) * var)
+            diff = np.abs(np.power(val - mue, power))
+            b = np.exp(-diff / (2 * var))
+            ret = a * b
+            return ret
+
+        pdfs_of_X = []
+        for i in range(len(X)):
+            pdfs_of_X.append(normal_of_scaler(2, self.mu_, self.var_, X[i]))
+
+        pdfs_of_X = np.array(pdfs_of_X)
+        return pdfs_of_X
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -97,13 +116,19 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+
+        len = len(X)
+        z = -len / 2
+        a = z * np.log(2 * np.pi) + z * np.log(sigma)
+        b = sum([(z - mu) ** 2 for z in X])
+        return a - ((1 / (2 * sigma)) * b)
 
 
 class MultivariateGaussian:
     """
     Class for multivariate Gaussian Distribution Estimator
     """
+
     def __init__(self):
         """
         Initialize an instance of multivariate Gaussian estimator
@@ -143,8 +168,9 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
 
+        self.mu_ = np.mean(X, axis=0)
+        self.cov_ = np.cov(X, rowvar=False)
         self.fitted_ = True
         return self
 
@@ -168,7 +194,10 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        part_2_exp = np.matmul(np.linalg.inv(self.cov_), (X - self.mu_))
+        fun = np.exp(-0.5 * np.matmul(np.transpose(X - self.mu_), part_2_exp))
+        cons = 1 / (np.sqrt(np.power(2 * np.pi, X.shape[0]) * np.linalg.det(self.cov_)))
+        return fun * cons
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
@@ -189,4 +218,16 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
-        raise NotImplementedError()
+        # using formulae derived in Q9
+        m, k = X.shape
+        fix_x = X - np.full((m, k), mu)
+        a = (- m / 2) * (k * np.log(2 * np.pi) + slogdet(cov)[1])
+        cov_inv = inv(cov)
+        b = (-0.5) * np.sum(fix_x @ cov_inv * fix_x)
+        return a + b
+
+
+a = UnivariateGaussian(False)
+UnivariateGaussian.__init__(a)
+UnivariateGaussian.fit(a, [3, 4, 5])
+UnivariateGaussian.pdf(a, [3, 4, 5])
