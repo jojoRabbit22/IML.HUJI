@@ -13,6 +13,7 @@ from typing import NoReturn
 import numpy as np
 
 
+
 class BaseEstimator(ABC):
     """
     Base class of supervised estimators (classifiers and regressors)

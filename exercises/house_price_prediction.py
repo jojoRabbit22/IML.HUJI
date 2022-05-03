@@ -1,3 +1,4 @@
+from IMLearn.metrics import mean_square_error
 from IMLearn.utils import split_train_test
 from IMLearn.learners.regressors import LinearRegression
 
@@ -9,6 +10,7 @@ import plotly.express as px
 import plotly.io as pio
 import os
 import warnings
+
 
 warnings.filterwarnings("ignore")
 pio.templates.default = "simple_white"
@@ -27,10 +29,7 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-
-    pd.read_csv(str)
     df = pd.read_csv(str)
-    df = df.dropna(axis=0).drop_duplicates()
     df = df.dropna(axis=0).drop_duplicates()
     df = df.drop("date", 1)
     df = df.drop("id", 1)
@@ -93,6 +92,9 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 if __name__ == '__main__':
     np.random.seed(0)
 
+    y_true = np.array([279000, 432000, 326000, 333000, 437400, 555950])
+    y_pred = np.array([199000.37562541, 452589.25533196, 345267.48129011, 345856.57131275, 563867.1347574, 395102.94362135])
+    print(mean_square_error(y_pred,y_true))
     # mod = LinearRegression()
     # line = np.linspace(0, 100, 101)
     # yy = np.linspace(0, 100, 101) * 5

@@ -64,9 +64,9 @@ class LinearRegression(BaseEstimator):
         """
         if self.include_intercept_:
             X = self.reshapeX(X)
-        self.coefs_ = transpose(linalg.pinv(transpose(X))) @ y
+        self.coefs_ = linalg.pinv(X) @ y
 
-    def reshapeX(self , X):
+    def reshapeX(self, X):
         array = np.ndarray(shape=(len(X), 1))
         for i in range(len(array)):
             array[i][0] = 1
@@ -111,3 +111,6 @@ class LinearRegression(BaseEstimator):
 
         y_pred = self.predict(X)
         return mean_square_error(y_pred, y)
+
+
+
